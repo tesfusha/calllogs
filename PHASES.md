@@ -85,14 +85,25 @@ and note/tag editing all work; no seed data in the shipped bundle.
 - Web test link: https://call-log-tesfu-tilahun-s-projects.vercel.app/ (GitHub + Vercel, free; SSO protection off)
 - Storage keys: `calllog.calls.v1` (AsyncStorage); ids are content-derived (`makeCallId`)
 
-## Phase 3 — Analytics & Calls Usage
+## Phase 3 - Analytics & Calls Usage
 
 Theme: "See where your time goes."
 
-- [ ] Analytics: total calls + total duration, incoming/outgoing pie, frequency bar chart
-- [ ] Time-range filter and Overview / Summary / Contacts / Calls sub-tabs
-- [ ] Calls Usage: SIM 1 / SIM 2, date range, direction filter, per-contact duration bars
-- [ ] Web export verified and published test link
+- [x] Analytics: total calls + total duration, incoming/outgoing pie, frequency bar chart
+- [x] Time-range filter (All / 7d / 30d / 90d / year) and Overview / Summary / Contacts / Calls sub-tabs
+- [x] Calls Usage: SIM 1 / SIM 2, date range, direction filter, per-contact duration bars
+- [x] Web export verified and published test link - https://call-log-tesfu-tilahun-s-projects.vercel.app/
+
+### Verification (2026-11-16)
+
+- `npx tsc --noEmit` -> clean; `npx expo lint` -> clean (0 warnings)
+- `npx expo export -p web` -> 10 static routes; colour audit clean
+- Local static build exercised: Analytics Overview (totals, pie, per-day bars), Summary
+  (avg duration, missed, duration-by-direction, busiest day, longest talker, unique
+  contacts, SIM breakdown), Contacts (top by calls + by duration), Calls (filtered
+  list with direction chips); Calls Usage (SIM/direction/range filters, SIM bars,
+  direction bars, top contacts by duration and by calls)
+- Test link: https://call-log-tesfu-tilahun-s-projects.vercel.app/ (GitHub + Vercel, free)
 
 ## Phase 4 — Reminders & Reports
 
