@@ -50,11 +50,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="backup"
+        name="settings"
         options={{
-          title: 'Backup',
-          tabBarAccessibilityLabel: 'Backup',
-          tabBarIcon: ({ focused }) => <TabIcon name="device-floppy" focused={focused} />,
+          title: 'Settings',
+          tabBarAccessibilityLabel: 'Settings',
+          tabBarIcon: ({ focused }) => <TabIcon name="settings" focused={focused} />,
         }}
       />
     </Tabs>
