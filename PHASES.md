@@ -19,6 +19,7 @@ Minimalist call-log companion. Free for everyone.
 | 3 | Analytics & Calls Usage | Totals, incoming/outgoing duration split, frequency chart, time ranges; SIM / date / direction usage bars |
 | 4 | Reminders & Reports | Quiet-period detection, "been a while" notification, Sunday weekly report, month-end monthly report |
 | 5 | Backup & Export (free) | Google Drive backup, CSV / XLS / JSON export, backup settings (account, schedule, Wi-Fi only) |
+| 6 | Native Packaging | EAS builds, device call-log import (READ_CALL_LOG), real Google Drive OAuth backup |
 
 Dependency order: 1 → 2 → 3 → 4 → 5. Reports consume the metrics built in Phase 3;
 backup/export serialises the Phase 2 data model.
@@ -145,3 +146,28 @@ Theme: "Free for everyone - means everything."
 
 Reading the device call log requires `READ_CALL_LOG` and a native Android module. The
 phased web test build uses imported data; native packaging is a separate delivery step.
+
+---
+
+## Phase 6 - Native Packaging
+
+Theme: "Ship it to a phone."
+
+- [x] EAS build configuration (`eas.json`) with development / preview / production profiles
+- [x] Android permissions declared (`READ_CALL_LOG`, `READ_PHONE_STATE`) in `app.json`
+- [x] Google Drive OAuth scaffold (`expo-auth-session` + `expo-secure-store`): sign-in,
+      upload backup to appDataFolder, list & restore backups (configurable client ID via
+      `expo.extra.googleClientId`)
+- [x] Native call-log reader stub (`src/lib/nativeCallLog.ts`) — gracefully falls back to
+      imported data when no native module is installed
+- [ ] Custom native module for Android call-log reading (requires EAS build + device testing)
+- [ ] EAS development build verified on a physical device
+- [x] Web export verified and published test link - https://call-log-tesfu-tilahun-s-projects.vercel.app/
+
+### Verification (2026-11-16)
+
+- `npx tsc --noEmit` -> clean; `npx expo lint` -> clean (0 warnings)
+- `npx expo export -p web` -> 10 static routes; colour audit clean
+- Backup tab shows Google Drive "Not configured" until a client ID is set; file
+  backup/restore and CSV/JSON/XLS export work offline
+- Test link: https://call-log-tesfu-tilahun-s-projects.vercel.app/ (GitHub + Vercel, free)

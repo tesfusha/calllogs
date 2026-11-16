@@ -12,7 +12,9 @@ import { Colors } from '@/constants/Colors';
 import { pageMetadata, pageTitle } from '@/constants/meta';
 import { downloadBackup, parseBackup } from '@/lib/backup';
 import { exportCalls } from '@/lib/export';
+import { listBackups, restoreFromDrive, uploadBackup } from '@/lib/drive';
 import { pickTextFile } from '@/lib/pickFile';
+import { useGoogleDrive } from '@/hooks/useGoogleDrive';
 import { useCalls } from '@/store/CallsProvider';
 
 const SETTINGS_KEY = 'calllog.backupSettings.v1';
@@ -35,6 +37,7 @@ export function generateMetadata() {
 
 export default function BackupScreen() {
   const { hydrated, calls, importCalls } = useCalls();
+  const drive = useGoogleDrive();
   const [settings, setSettings] = useState<BackupSettings>(DEFAULT_SETTINGS);
   const [lastBackupAt, setLastBackupAt] = useState<number | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -122,8 +125,63 @@ export default function BackupScreen() {
   }, [importCalls]);
 
   const handleConnectDrive = useCallback(() => {
-    setNotice('Google Drive sign-in is not wired in this web test build. File backup/restore works offline.');
-  }, []);
+    if (drive.user) {
+      drive.signOut();
+      setNotice('Disconnected from Google Drive.');
+    } else {
+      drive.signIn();
+    }
+  }, [drive]);
+
+  const handleDriveBackup = useCallback(async () => {
+    if (!drive.accessToken) {
+      setNotice('Connect Google Drive first.');
+      return;
+    }
+    if (calls.length === 0) {
+      setNotice('Nothing to back up yet.');
+      return;
+    }
+    try {
+      const id = await uploadBackup(drive.accessToken, calls);
+      setNotice(`Backed up ${calls.length} calls to Google Drive (${id.slice(0, 8)}…).`);
+    } catch (err) {
+      setNotice(`Drive backup failed: ${String(err)}`);
+    }
+  }, [drive, calls]);
+
+  const handleDriveRestore = useCallback(async () => {
+    if (!drive.accessToken) {
+      setNotice('Connect Google Drive first.');
+      return;
+    }
+    setRestoring(true);
+    try {
+      const files = await listBackups(drive.accessToken);
+      if (files.length === 0) {
+        setNotice('No backups found in Google Drive.');
+        setRestoring(false);
+        return;
+      }
+      const latest = files[0];
+      const { calls: restored, error } = await restoreFromDrive(drive.accessToken, latest.id);
+      if (error) {
+        setNotice(error);
+        setRestoring(false);
+        return;
+      }
+      const { added } = importCalls(restored);
+      setNotice(
+        added > 0
+          ? `Restored ${added} new call${added === 1 ? '' : 's'} from Google Drive.`
+          : 'No new calls — backup already imported.',
+      );
+    } catch (err) {
+      setNotice(`Drive restore failed: ${String(err)}`);
+    } finally {
+      setRestoring(false);
+    }
+  }, [drive, importCalls]);
 
   if (!hydrated) {
     return (
@@ -190,11 +248,37 @@ export default function BackupScreen() {
             <View style={styles.driveBody}>
               <Text style={styles.driveTitle}>Google Drive</Text>
               <Text style={styles.driveHint}>
-                {settings.accountEmail ?? 'Not connected (web test build uses file backup).'}
+                {drive.loading
+                  ? 'Loading…'
+                  : drive.user
+                    ? drive.user.email
+                    : drive.configured
+                      ? 'Not connected.'
+                      : 'Not configured — set expo.extra.googleClientId.'}
               </Text>
+              {drive.error ? <Text style={styles.driveError}>{drive.error}</Text> : null}
             </View>
-            <Button label="Connect" icon="external-link" variant="subtle" compact onPress={handleConnectDrive} />
+            <Button
+              label={drive.user ? 'Disconnect' : 'Connect'}
+              icon="external-link"
+              variant="subtle"
+              compact
+              onPress={handleConnectDrive}
+            />
           </View>
+
+          {drive.user && (
+            <View style={styles.buttonRow}>
+              <Button label="Back up to Drive" icon="cloud-upload" variant="primary" onPress={handleDriveBackup} />
+              <Button
+                label={restoring ? 'Restoring…' : 'Restore from Drive'}
+                icon="cloud-download"
+                variant="subtle"
+                onPress={handleDriveRestore}
+                disabled={restoring}
+              />
+            </View>
+          )}
         </View>
 
         <View style={styles.card}>
@@ -325,6 +409,10 @@ const styles = StyleSheet.create({
   driveHint: {
     color: Colors.textMuted,
     fontSize: 12,
+  },
+  driveError: {
+    color: Colors.danger,
+    fontSize: 11,
   },
   settingRow: {
     flexDirection: 'row',
