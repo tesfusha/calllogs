@@ -170,9 +170,9 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   callButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: Colors.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',

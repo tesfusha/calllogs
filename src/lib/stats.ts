@@ -122,8 +122,17 @@ export type ContactStat = {
 /** Per-contact aggregation, sorted by count desc then duration desc. */
 export function contactStats(calls: CallRecord[]): ContactStat[] {
   const map = new Map<string, ContactStat>();
+  const nameCounts = new Map<string, Map<string, number>>();
+
   calls.forEach((call) => {
     const key = call.number;
+    const trimmedName = call.name?.trim();
+    if (trimmedName) {
+      if (!nameCounts.has(key)) nameCounts.set(key, new Map());
+      const counts = nameCounts.get(key)!;
+      counts.set(trimmedName, (counts.get(trimmedName) ?? 0) + 1);
+    }
+
     const existing = map.get(key);
     if (existing) {
       existing.count += 1;
@@ -141,7 +150,7 @@ export function contactStats(calls: CallRecord[]): ContactStat[] {
     } else {
       map.set(key, {
         key,
-        name: call.name?.trim() || call.number,
+        name: trimmedName || call.number,
         number: call.number,
         count: 1,
         incoming: call.direction === 'incoming' ? 1 : 0,
@@ -153,6 +162,21 @@ export function contactStats(calls: CallRecord[]): ContactStat[] {
         lastTimestamp: call.timestamp,
       });
     }
+  });
+
+  // Merge names: pick the most common non-empty name per contact.
+  map.forEach((stat, key) => {
+    const counts = nameCounts.get(key);
+    if (!counts || counts.size === 0) return;
+    let bestName = stat.name;
+    let bestCount = 0;
+    counts.forEach((count, name) => {
+      if (count > bestCount) {
+        bestCount = count;
+        bestName = name;
+      }
+    });
+    stat.name = bestName;
   });
 
   return [...map.values()].sort((a, b) => {
@@ -221,4 +245,52 @@ export function topByDuration(calls: CallRecord[]): ContactStat | null {
   return stats.reduce((best, stat) =>
     stat.duration > best.duration ? stat : best,
   );
+}
+
+export type DurationTrends = {
+  avgAll: number;
+  avg7d: number;
+  avg30d: number;
+  longest: { name: string; duration: number; timestamp: number } | null;
+  shortest: { name: string; duration: number; timestamp: number } | null;
+  totalCallsWithDuration: number;
+};
+
+/** Rolling duration averages and longest/shortest calls. */
+export function durationTrends(calls: CallRecord[], now: Date = new Date()): DurationTrends {
+  const nowMs = now.getTime();
+  const sevenDaysAgo = nowMs - 7 * 86_400_000;
+  const thirtyDaysAgo = nowMs - 30 * 86_400_000;
+
+  const withDuration = calls.filter((call) => call.duration > 0);
+  const avg = (subset: CallRecord[]) =>
+    subset.length > 0
+      ? Math.round(subset.reduce((sum, call) => sum + call.duration, 0) / subset.length)
+      : 0;
+
+  const longest =
+    withDuration.length > 0
+      ? withDuration.reduce((best, call) =>
+          call.duration > best.duration ? call : best,
+        )
+      : null;
+  const shortest =
+    withDuration.length > 0
+      ? withDuration.reduce((best, call) =>
+          call.duration < best.duration ? call : best,
+        )
+      : null;
+
+  return {
+    avgAll: avg(calls),
+    avg7d: avg(calls.filter((call) => call.timestamp >= sevenDaysAgo)),
+    avg30d: avg(calls.filter((call) => call.timestamp >= thirtyDaysAgo)),
+    longest: longest
+      ? { name: longest.name?.trim() || longest.number, duration: longest.duration, timestamp: longest.timestamp }
+      : null,
+    shortest: shortest
+      ? { name: shortest.name?.trim() || shortest.number, duration: shortest.duration, timestamp: shortest.timestamp }
+      : null,
+    totalCallsWithDuration: withDuration.length,
+  };
 }

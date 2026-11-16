@@ -14,6 +14,7 @@ export function SegmentedTabs({ tabs, value, onChange }: SegmentedTabsProps) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      style={styles.scroll}
       contentContainerStyle={styles.container}>
       {tabs.map((tab, index) => {
         const active = index === value;
@@ -33,17 +34,22 @@ export function SegmentedTabs({ tabs, value, onChange }: SegmentedTabsProps) {
 }
 
 const styles = StyleSheet.create({
+  scroll: { flexGrow: 0, flexShrink: 0 },
   container: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   tab: {
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 18,
-    backgroundColor: Colors.surfaceElevated,
+    borderRadius: 10,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
   },

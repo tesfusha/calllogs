@@ -21,6 +21,7 @@ export function RangeChips({ value, onChange }: RangeChipsProps) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      style={styles.scroll}
       contentContainerStyle={styles.container}>
       {OPTIONS.map((option) => {
         const active = option.key === value;
@@ -40,16 +41,21 @@ export function RangeChips({ value, onChange }: RangeChipsProps) {
 }
 
 const styles = StyleSheet.create({
+  scroll: { flexGrow: 0, flexShrink: 0 },
   container: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
     paddingHorizontal: 16,
-    paddingVertical: 4,
+    paddingVertical: 6,
   },
   chip: {
+    height: 34,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
     paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 18,
+    borderRadius: 17,
     backgroundColor: Colors.surfaceElevated,
     borderWidth: 1,
     borderColor: Colors.border,

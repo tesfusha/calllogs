@@ -20,6 +20,7 @@ import {
   busiestDay,
   contactStats,
   dailyBuckets,
+  durationTrends,
   inRange,
   RangeKey,
   simStats,
@@ -52,6 +53,7 @@ export default function AnalyticsScreen() {
   const sims = useMemo(() => simStats(filtered), [filtered]);
   const busy = useMemo(() => busiestDay(filtered), [filtered]);
   const topDuration = useMemo(() => topByDuration(filtered), [filtered]);
+  const trends = useMemo(() => durationTrends(filtered), [filtered]);
 
   const pieSlices = [
     { label: 'Incoming', value: t.incoming, color: Colors.incoming },
@@ -201,6 +203,38 @@ export default function AnalyticsScreen() {
                     .join('  ·  ')}
                 </Text>
               </View>
+            </View>
+
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Duration trends</Text>
+              <View style={styles.highlightRow}>
+                <Text style={styles.highlightLabel}>Avg (all)</Text>
+                <Text style={styles.highlightValue}>{formatDuration(trends.avgAll)}</Text>
+              </View>
+              <View style={styles.highlightRow}>
+                <Text style={styles.highlightLabel}>Avg (7 days)</Text>
+                <Text style={styles.highlightValue}>{formatDuration(trends.avg7d)}</Text>
+              </View>
+              <View style={styles.highlightRow}>
+                <Text style={styles.highlightLabel}>Avg (30 days)</Text>
+                <Text style={styles.highlightValue}>{formatDuration(trends.avg30d)}</Text>
+              </View>
+              {trends.longest && (
+                <View style={styles.highlightRow}>
+                  <Text style={styles.highlightLabel}>Longest call</Text>
+                  <Text style={styles.highlightValue}>
+                    {trends.longest.name} ({formatDuration(trends.longest.duration)})
+                  </Text>
+                </View>
+              )}
+              {trends.shortest && (
+                <View style={styles.highlightRow}>
+                  <Text style={styles.highlightLabel}>Shortest call</Text>
+                  <Text style={styles.highlightValue}>
+                    {trends.shortest.name} ({formatDuration(trends.shortest.duration)})
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         )}
