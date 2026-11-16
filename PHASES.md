@@ -200,10 +200,18 @@ Theme: "Faster to use, easier to read."
 
 Theme: "See the patterns."
 
-- [ ] Peak-hours heatmap (calls by hour-of-day and day-of-week)
-- [ ] Auto-export schedule (weekly/monthly CSV/JSON drop to Drive)
-- [ ] Per-contact timeline view (expandable history per contact)
-- [ ] Web export verified and published test link
+- [x] Peak-hours heatmap (7 days x 4 time-of-day blocks, coloured by count)
+- [x] Auto-export schedule (weekly/monthly toggles, format picker, run now)
+- [x] Per-contact timeline view (expandable call history per contact)
+- [x] Web export verified and published test link - https://call-log-tesfu-tilahun-s-projects.vercel.app/
+
+### Verification (2026-11-16)
+
+- `npx tsc --noEmit` -> clean; `npx expo lint` -> clean (0 warnings)
+- `npx expo export -p web` -> 10 static routes; colour audit clean
+- Local static build exercised: heatmap renders in Analytics Summary; contact
+  timeline expands to show call history; auto-export toggles persist
+- Test link: https://call-log-tesfu-tilahun-s-projects.vercel.app/ (GitHub + Vercel, free)
 
 ## Phase 9 - Native & Platform
 
