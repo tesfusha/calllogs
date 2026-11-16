@@ -36,7 +36,7 @@ export function generateMetadata() {
 }
 
 export default function BackupScreen() {
-  const { hydrated, calls, importCalls } = useCalls();
+  const { hydrated, calls, importCalls, removeCall } = useCalls();
   const drive = useGoogleDrive();
   const [settings, setSettings] = useState<BackupSettings>(DEFAULT_SETTINGS);
   const [lastBackupAt, setLastBackupAt] = useState<number | null>(null);
@@ -96,6 +96,17 @@ export default function BackupScreen() {
     }
     setNotice(`Backed up ${calls.length} calls.`);
   }, [calls]);
+
+  const handleClearImported = useCallback(() => {
+    // Clear only the imported call log (calls store).
+    if (calls.length === 0) {
+      setNotice('Nothing to clear.');
+      return;
+    }
+    // Remove all calls via the store's removeCall for each.
+    calls.forEach((call) => removeCall(call.id));
+    setNotice('Cleared all imported calls.');
+  }, [calls, removeCall]);
 
   const handleRestore = useCallback(async () => {
     setRestoring(true);
@@ -241,6 +252,7 @@ export default function BackupScreen() {
               onPress={handleRestore}
               disabled={restoring}
             />
+            <Button label="Clear imported" icon="trash" variant="danger" onPress={handleClearImported} />
           </View>
 
           <View style={styles.driveRow}>

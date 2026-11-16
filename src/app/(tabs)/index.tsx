@@ -11,7 +11,6 @@ import {
 
 import Head from 'expo-router/head';
 
-import { Button } from '@/components/Button';
 import { CallDetailModal } from '@/components/CallDetailModal';
 import { RemindersModal } from '@/components/RemindersModal';
 import { CallRow } from '@/components/CallRow';
@@ -22,8 +21,7 @@ import { TablerIcon } from '@/components/TablerIcons';
 import { Colors } from '@/constants/Colors';
 import { pageMetadata, pageTitle } from '@/constants/meta';
 import { filterCalls, groupCalls } from '@/lib/calls';
-import { parseCallImport } from '@/lib/import';
-import { pickTextFile } from '@/lib/pickFile';
+
 import { useCalls } from '@/store/CallsProvider';
 
 export function generateMetadata() {
@@ -31,7 +29,7 @@ export function generateMetadata() {
 }
 
 export default function DialerScreen() {
-  const { hydrated, calls, importCalls, patchCall, removeCall } = useCalls();
+  const { hydrated, calls, patchCall, removeCall } = useCalls();
 
   const [query, setQuery] = useState('');
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -53,31 +51,7 @@ export default function DialerScreen() {
     return () => clearTimeout(timer);
   }, [notice]);
 
-  const handleImport = useCallback(async () => {
-    const file = await pickTextFile();
-    if (!file) return;
 
-    const result = parseCallImport(file.text, file.name);
-    if (result.calls.length === 0) {
-      showNotice(result.problems[0] ?? 'No calls found in that file.');
-      return;
-    }
-
-    const { added, duplicates } = importCalls(result.calls);
-    if (added === 0) {
-      showNotice('No new calls — those are already in your history.');
-      return;
-    }
-
-    const parts = [`Imported ${added} ${added === 1 ? 'call' : 'calls'}`];
-    if (duplicates > 0) {
-      parts.push(`${duplicates} duplicate${duplicates === 1 ? '' : 's'} skipped`);
-    }
-    if (result.invalid > 0) {
-      parts.push(`${result.invalid} row${result.invalid === 1 ? '' : 's'} skipped`);
-    }
-    showNotice(parts.join(' · '));
-  }, [importCalls, showNotice]);
 
   const handleCallBack = useCallback(
     (number: string) => {
@@ -127,14 +101,6 @@ export default function DialerScreen() {
             style={({ pressed }) => [styles.bellButton, pressed && styles.pressed]}>
             <TablerIcon name="bell" size={18} color={Colors.accent} />
           </Pressable>
-          <Button
-            label="Import"
-            icon="download"
-            variant="subtle"
-            compact
-            onPress={handleImport}
-            accessibilityLabel="Import call history from a file"
-          />
         </View>
       </View>
 
@@ -152,10 +118,7 @@ export default function DialerScreen() {
         <EmptyState
           icon="phone"
           title="No calls yet"
-          message="Import a CSV or JSON export to fill your history. Nothing is pre-loaded."
-          action={
-            <Button label="Import calls" icon="download" variant="primary" onPress={handleImport} />
-          }
+          message="Import a CSV or JSON export in Backup to fill your history. Nothing is pre-loaded."
         />
       ) : sections.length === 0 ? (
         <EmptyState

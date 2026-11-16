@@ -318,13 +318,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   card: {
-    marginHorizontal: 16,
-    backgroundColor: Colors.surfaceElevated,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    padding: 16,
-    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   cardTitle: {
     color: Colors.text,
