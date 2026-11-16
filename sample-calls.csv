@@ -1,0 +1,13 @@
+number,name,direction,sim,timestamp,duration,note,tag
++251941505775,Melek,outgoing,SIM 1,2026-11-15T17:38:00,31,,
++251941505775,Melek,missed,SIM 1,2026-11-15T07:41:00,0,,
++251973382050,Sony Bro,incoming,SIM 1,2026-11-15T14:02:00,17,,
++251947525959,Ma Mamy,incoming,SIM 1,2026-11-15T10:49:00,293,,
++251927842689,Ma Sis,incoming,SIM 1,2026-11-15T10:44:00,18,,
++251919561140,Moti Food,incoming,SIM 1,2026-11-14T17:44:00,23,,
++251911947767,Ziggy Berber,outgoing,SIM 2,2026-11-14T17:05:00,33,,
++251900041739,Fetene Graphics,outgoing,SIM 1,2026-11-14T09:12:00,145,call back about the poster,work
++251940879181,Fev,incoming,SIM 2,2026-11-13T19:30:00,540,,
++251924070346,Abela Leake,outgoing,SIM 1,2026-11-13T11:05:00,72,,
++251921768067,Temu,missed,SIM 1,2026-11-12T20:18:00,0,,
++251922839022,Sami OLY,outgoing,SIM 1,2026-11-12T08:50:00,210,loan documents shared,family

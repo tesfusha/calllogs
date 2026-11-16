@@ -1,56 +1,93 @@
-# Welcome to your Expo app 👋
+# Call Log
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A minimalist call-log companion. Free for everyone — no ads, no paywall.
 
-## Get started
+## What it does
 
-1. Install dependencies
+| Tab | Purpose |
+| --- | --- |
+| Dialer | Call history, grouped by date, with search and call-back |
+| Analytics | Totals, incoming/outgoing duration split, frequency over time |
+| Calls Usage | Per-contact duration and call counts, filterable by SIM / date / direction |
+| Backup | Free Google Drive backup and data export |
 
-   ```bash
-   npm install
-   ```
+Planned features: a reminder that says "It's been a while since you called X" when a
+frequent contact has gone quiet, plus a weekly report every Sunday and a monthly report at
+month end. See [PHASES.md](PHASES.md) for the build order and current progress.
 
-2. Start the app
+## Setup
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```sh
+npm install
+npm start              # Expo dev server
+npm run web            # open in a browser
+npm run typecheck      # tsc --noEmit
+npm run lint           # expo lint
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+## Web test build
 
-### Other setup steps
+```sh
+npx expo export -p web # emits dist/
+npx serve dist         # preview the production build locally
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+`dist/` is a static site (10 static routes) and can be served by any static host. Each
+completed phase is published to a clickable test link — see [PHASES.md](PHASES.md).
 
-## Learn more
+## Import format (Phase 2)
 
-To learn more about developing your project with Expo, look at the following resources:
+The Import button on the Dialer tab (web build) accepts `.csv` or `.json`. A header row is
+optional for CSV; columns are:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```
+number,name,direction,sim,timestamp,duration,note,tag
+```
 
-## Join the community
+| Column | Values |
+| --- | --- |
+| direction | incoming / outgoing / missed |
+| sim | SIM 1 / SIM 2 |
+| timestamp | ISO 8601, or epoch seconds / milliseconds |
+| duration | seconds |
+| note, tag | optional free text |
 
-Join our community of developers creating universal apps.
+```csv
+number,name,direction,sim,timestamp,duration,note,tag
++251941505775,Melek,outgoing,SIM 1,2026-11-15T17:38:00,31,,
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+A ready-to-use file is included at `sample-calls.csv`.
+
+JSON is an array of call objects, or `{ "calls": [...] }`, using the keys in `types.ts`.
+
+Importing replaces the current history. Data is stored locally (localStorage on web,
+AsyncStorage on native) — nothing is uploaded.
+
+## Architecture
+
+- **Expo Router** file-based routing (TypeScript strict, `@/*` → `src/*`); the bottom tab
+  bar lives in `src/app/(tabs)/_layout.tsx`.
+- **`src/constants/Colors.ts` is the only place colours are defined** — components use
+  semantic tokens (`bg`, `surface`, `text`, `accent`, `incoming`, `outgoing`, …). The app is
+  dark-only; there are zero stray hex/rgba literals elsewhere in `src/`.
+- `src/constants/theme.ts` holds non-colour tokens (spacing, insets, fonts).
+- **`src/components/TablerIcons.tsx`** — Tabler outline icons (MIT) rendered with
+  `react-native-svg`. The file is generated from `icons-src/*.svg` by
+  `scripts/generate-tabler-icons.mjs` (`npm run generate:icons`). Size convention: 24
+  default / 20 compact, stroke 2.
+- `src/components/Screen.tsx` / `EmptyState.tsx` — shared screen frame and empty-by-default
+  placeholder.
+- Static page metadata: `src/constants/meta.ts` + `generateMetadata()` on each route
+  (SDK 58 static rendering), with `<Head>` keeping titles in sync during in-app navigation.
+- **Empty-by-default: the app ships with zero demo data.**
+
+## Platform note
+
+Reading the device call log on Android requires `READ_CALL_LOG` and a native module. The
+phased web test build works with imported call data; native packaging is a separate
+delivery step.
+
+## Roadmap
+
+See [PHASES.md](PHASES.md).
