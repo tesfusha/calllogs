@@ -41,7 +41,7 @@ Theme: "Clean, dark, consistent."
 - [x] Empty-by-default state on every tab — no demo data
 - [x] README.md + this roadmap
 - [x] Web export verified (`npx expo export -p web`, 10 static routes)
-- [ ] Published test link — **pending hosting choice**
+- [x] Published test link — https://call-log.vercel.app/ (GitHub + Vercel, free)
 
 ### Exit criteria
 
@@ -64,15 +64,26 @@ literals, test link opens on any device.
 
 Theme: "History you can actually use."
 
-- [ ] `CallRecord` model: id, number, name, direction, SIM, timestamp, duration, note/tag
-- [ ] Local persistence (hydrate-safe, no seed data)
-- [ ] Import call data (CSV / JSON) — required for the web test build
-- [ ] Dialer: date-grouped history, contact initials/avatars, direction arrows, duration, SIM
-- [ ] Search, call-back action, notes/tags on a call
-- [ ] Web export verified and published test link
+- [x] `CallRecord` model: id, number, name, direction, SIM, timestamp, duration, note/tag
+- [x] Local persistence (hydrate-safe, no seed data; `@react-native-async-storage/async-storage`)
+- [x] Import call data (CSV / JSON) — header aliases, Excel scientific-notation normalised, content-derived ids de-duplicate
+- [x] Dialer: date-grouped history, contact initials/avatars, direction arrows, duration, SIM
+- [x] Search (name/number/note/tag + digit-aware), call-back action, notes/tags on a call
+- [x] Web export verified and published test link — https://call-log.vercel.app/
 
 **Exit criteria:** importing `sample-calls.csv` shows grouped history; search, call-back
 and note/tag editing all work; no seed data in the shipped bundle.
+
+### Verification (2026-11-16)
+
+- `npx tsc --noEmit` → clean; `npx expo lint` → clean
+- `npx expo export -p web` → 10 static routes; colour audit clean (no stray hex/rgba in `src/`)
+- Local static build (`npx serve dist`) exercised end to end: empty state → import
+  (CSV + JSON, incl. bad-file error) → grouped rows → search (note/digit/no-match) →
+  detail modal note/tag save → call-back → delete → reload persistence (13 calls survived)
+- Excel scientific-notation numbers (`2.51942E+11`) normalised to `251942000000`
+- Web test link: https://call-log.vercel.app/ (GitHub + Vercel, free; SSO protection off)
+- Storage keys: `calllog.calls.v1` (AsyncStorage); ids are content-derived (`makeCallId`)
 
 ## Phase 3 — Analytics & Calls Usage
 
