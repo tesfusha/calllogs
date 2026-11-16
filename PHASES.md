@@ -41,7 +41,7 @@ Theme: "Clean, dark, consistent."
 - [x] Empty-by-default state on every tab — no demo data
 - [x] README.md + this roadmap
 - [x] Web export verified (`npx expo export -p web`, 10 static routes)
-- [x] Published test link — https://call-log.vercel.app/ (GitHub + Vercel, free)
+- [x] Published test link — https://call-log-tesfu-tilahun-s-projects.vercel.app/ (GitHub + Vercel, free)
 
 ### Exit criteria
 
@@ -69,7 +69,7 @@ Theme: "History you can actually use."
 - [x] Import call data (CSV / JSON) — header aliases, Excel scientific-notation normalised, content-derived ids de-duplicate
 - [x] Dialer: date-grouped history, contact initials/avatars, direction arrows, duration, SIM
 - [x] Search (name/number/note/tag + digit-aware), call-back action, notes/tags on a call
-- [x] Web export verified and published test link — https://call-log.vercel.app/
+- [x] Web export verified and published test link — https://call-log-tesfu-tilahun-s-projects.vercel.app/
 
 **Exit criteria:** importing `sample-calls.csv` shows grouped history; search, call-back
 and note/tag editing all work; no seed data in the shipped bundle.
@@ -82,7 +82,7 @@ and note/tag editing all work; no seed data in the shipped bundle.
   (CSV + JSON, incl. bad-file error) → grouped rows → search (note/digit/no-match) →
   detail modal note/tag save → call-back → delete → reload persistence (13 calls survived)
 - Excel scientific-notation numbers (`2.51942E+11`) normalised to `251942000000`
-- Web test link: https://call-log.vercel.app/ (GitHub + Vercel, free; SSO protection off)
+- Web test link: https://call-log-tesfu-tilahun-s-projects.vercel.app/ (GitHub + Vercel, free; SSO protection off)
 - Storage keys: `calllog.calls.v1` (AsyncStorage); ids are content-derived (`makeCallId`)
 
 ## Phase 3 — Analytics & Calls Usage
