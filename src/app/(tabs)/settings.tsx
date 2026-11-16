@@ -22,11 +22,17 @@ const PROFILE_KEY = 'calllog.profile.v1';
 type BackupSettings = {
   weeklySchedule: boolean;
   wifiOnly: boolean;
+  autoExportWeekly: boolean;
+  autoExportMonthly: boolean;
+  autoExportFormat: 'csv' | 'json';
 };
 
 const DEFAULT_SETTINGS: BackupSettings = {
   weeklySchedule: false,
   wifiOnly: true,
+  autoExportWeekly: false,
+  autoExportMonthly: false,
+  autoExportFormat: 'csv',
 };
 
 type Profile = {
@@ -44,6 +50,7 @@ export default function SettingsScreen() {
   const [profile, setProfile] = useState<Profile>({ name: '' });
   const [profileDraft, setProfileDraft] = useState('');
   const [lastBackupAt, setLastBackupAt] = useState<number | null>(null);
+  const [lastAutoExportAt, setLastAutoExportAt] = useState<number | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
 
@@ -68,6 +75,12 @@ export default function SettingsScreen() {
       try {
         const raw = await AsyncStorage.getItem('calllog.lastBackupAt');
         if (raw) setLastBackupAt(Number(raw));
+      } catch {
+        // ignore
+      }
+      try {
+        const raw = await AsyncStorage.getItem('calllog.lastAutoExportAt');
+        if (raw) setLastAutoExportAt(Number(raw));
       } catch {
         // ignore
       }
@@ -148,6 +161,25 @@ export default function SettingsScreen() {
       setRestoring(false);
     }
   }, [importCalls]);
+
+  const runAutoExport = useCallback(
+    (kind: 'weekly' | 'monthly') => {
+      if (calls.length === 0) {
+        setNotice('Nothing to export yet.');
+        return;
+      }
+      exportCalls(calls, settings.autoExportFormat);
+      const now = Date.now();
+      setLastAutoExportAt(now);
+      try {
+        AsyncStorage.setItem('calllog.lastAutoExportAt', String(now));
+      } catch {
+        // ignore
+      }
+      setNotice(`Auto-exported ${calls.length} calls (${kind}, ${settings.autoExportFormat.toUpperCase()}).`);
+    },
+    [calls, settings.autoExportFormat],
+  );
 
   const handleClearImported = useCallback(() => {
     if (calls.length === 0) {
@@ -347,6 +379,63 @@ export default function SettingsScreen() {
             <Button label="JSON" icon="device-floppy" variant="subtle" onPress={() => handleExport('json')} />
             <Button label="XLS" icon="file-spreadsheet" variant="subtle" onPress={() => handleExport('xls')} />
           </View>
+        </View>
+
+        {/* Auto-export schedule */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Auto-export schedule</Text>
+          <Text style={styles.cardHint}>Automatically export your call log on a schedule.</Text>
+          <View style={styles.settingRow}>
+            <View style={styles.settingBody}>
+              <Text style={styles.settingLabel}>Weekly export</Text>
+              <Text style={styles.settingHint}>Export once a week.</Text>
+            </View>
+            <Switch
+              value={settings.autoExportWeekly}
+              onValueChange={(value) => persistSettings({ ...settings, autoExportWeekly: value })}
+              trackColor={{ false: Colors.border, true: Colors.accentSoft }}
+              thumbColor={settings.autoExportWeekly ? Colors.accent : Colors.textMuted}
+            />
+          </View>
+          <View style={styles.settingRow}>
+            <View style={styles.settingBody}>
+              <Text style={styles.settingLabel}>Monthly export</Text>
+              <Text style={styles.settingHint}>Export at month end.</Text>
+            </View>
+            <Switch
+              value={settings.autoExportMonthly}
+              onValueChange={(value) => persistSettings({ ...settings, autoExportMonthly: value })}
+              trackColor={{ false: Colors.border, true: Colors.accentSoft }}
+              thumbColor={settings.autoExportMonthly ? Colors.accent : Colors.textMuted}
+            />
+          </View>
+          <View style={styles.settingRow}>
+            <View style={styles.settingBody}>
+              <Text style={styles.settingLabel}>Format</Text>
+              <Text style={styles.settingHint}>{settings.autoExportFormat.toUpperCase()}</Text>
+            </View>
+            <View style={styles.buttonRow}>
+              <Button
+                label="CSV"
+                variant={settings.autoExportFormat === 'csv' ? 'primary' : 'subtle'}
+                compact
+                onPress={() => persistSettings({ ...settings, autoExportFormat: 'csv' })}
+              />
+              <Button
+                label="JSON"
+                variant={settings.autoExportFormat === 'json' ? 'primary' : 'subtle'}
+                compact
+                onPress={() => persistSettings({ ...settings, autoExportFormat: 'json' })}
+              />
+            </View>
+          </View>
+          <View style={styles.statusRow}>
+            <Text style={styles.statusLabel}>Last auto-export</Text>
+            <Text style={styles.statusValue}>
+              {lastAutoExportAt ? new Date(lastAutoExportAt).toLocaleString() : 'Never'}
+            </Text>
+          </View>
+          <Button label="Run scheduled export now" icon="download" variant="subtle" onPress={() => runAutoExport('weekly')} />
         </View>
 
         {/* Settings toggles */}

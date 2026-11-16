@@ -13,6 +13,7 @@ import { Screen } from '@/components/Screen';
 import { SegmentedTabs } from '@/components/SegmentedTabs';
 import { StatCard } from '@/components/StatCard';
 import { BarChart } from '@/components/BarChart';
+import { Heatmap } from '@/components/Heatmap';
 import { Colors } from '@/constants/Colors';
 import { pageMetadata, pageTitle } from '@/constants/meta';
 import { formatDuration } from '@/lib/format';
@@ -21,6 +22,7 @@ import {
   contactStats,
   dailyBuckets,
   durationTrends,
+  heatmapBuckets,
   inRange,
   RangeKey,
   simStats,
@@ -41,6 +43,7 @@ export default function AnalyticsScreen() {
   const [subTab, setSubTab] = useState(0);
   const [direction, setDirection] = useState<'all' | 'incoming' | 'outgoing' | 'missed'>('all');
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [expandedContact, setExpandedContact] = useState<string | null>(null);
 
   const filtered = useMemo(
     () => (hydrated ? calls.filter((call) => inRange(call, range)) : []),
@@ -54,6 +57,7 @@ export default function AnalyticsScreen() {
   const busy = useMemo(() => busiestDay(filtered), [filtered]);
   const topDuration = useMemo(() => topByDuration(filtered), [filtered]);
   const trends = useMemo(() => durationTrends(filtered), [filtered]);
+  const heatmap = useMemo(() => heatmapBuckets(filtered), [filtered]);
 
   const pieSlices = [
     { label: 'Incoming', value: t.incoming, color: Colors.incoming },
@@ -236,6 +240,11 @@ export default function AnalyticsScreen() {
                 </View>
               )}
             </View>
+
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Peak hours (day x time of day)</Text>
+              <Heatmap cells={heatmap} emptyLabel="No calls in this range" />
+            </View>
           </View>
         )}
 
@@ -275,6 +284,65 @@ export default function AnalyticsScreen() {
                       rightLabel: formatDuration(contact.duration),
                     }))}
                 />
+              </View>
+            )}
+
+            {contacts.length > 0 && (
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Contact timeline</Text>
+                <Text style={styles.cardHint}>Tap a contact to expand their call history.</Text>
+                {contacts.slice(0, 15).map((contact) => {
+                  const expanded = expandedContact === contact.key;
+                  const contactCalls = filtered
+                    .filter((call) => call.number === contact.key)
+                    .sort((a, b) => b.timestamp - a.timestamp);
+                  return (
+                    <View key={contact.key} style={styles.timelineItem}>
+                      <Pressable
+                        onPress={() => setExpandedContact(expanded ? null : contact.key)}
+                        accessibilityRole="button"
+                        style={styles.timelineHeader}>
+                        <Text style={styles.timelineName}>{contact.name}</Text>
+                        <Text style={styles.timelineMeta}>
+                          {contact.count} calls · {formatDuration(contact.duration)}
+                        </Text>
+                      </Pressable>
+                      {expanded && (
+                        <View style={styles.timelineCalls}>
+                          {contactCalls.map((call) => (
+                            <View key={call.id} style={styles.timelineCall}>
+                              <Text style={styles.timelineCallTime}>
+                                {new Date(call.timestamp).toLocaleString(undefined, {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: 'numeric',
+                                  minute: '2-digit',
+                                })}
+                              </Text>
+                              <Text
+                                style={[
+                                  styles.timelineCallDir,
+                                  {
+                                    color:
+                                      call.direction === 'incoming'
+                                        ? Colors.incoming
+                                        : call.direction === 'outgoing'
+                                          ? Colors.outgoing
+                                          : Colors.missed,
+                                  },
+                                ]}>
+                                {call.direction}
+                              </Text>
+                              <Text style={styles.timelineCallDur}>
+                                {call.duration > 0 ? formatDuration(call.duration) : '—'}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
               </View>
             )}
           </View>
@@ -362,6 +430,58 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: 15,
     fontWeight: '600',
+  },
+  cardHint: {
+    color: Colors.textMuted,
+    fontSize: 12,
+  },
+  timelineItem: {
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    paddingVertical: 6,
+  },
+  timelineHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  timelineName: {
+    color: Colors.text,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  timelineMeta: {
+    color: Colors.textMuted,
+    fontSize: 12,
+  },
+  timelineCalls: {
+    marginTop: 6,
+    gap: 4,
+    paddingLeft: 4,
+  },
+  timelineCall: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 2,
+  },
+  timelineCallTime: {
+    color: Colors.textSecondary,
+    fontSize: 12,
+    flex: 1,
+  },
+  timelineCallDir: {
+    fontSize: 12,
+    fontWeight: '600',
+    width: 70,
+    textAlign: 'center',
+  },
+  timelineCallDur: {
+    color: Colors.textMuted,
+    fontSize: 12,
+    width: 50,
+    textAlign: 'right',
+    fontVariant: ['tabular-nums'],
   },
   highlightRow: {
     flexDirection: 'row',

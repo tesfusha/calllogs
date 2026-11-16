@@ -247,6 +247,63 @@ export function topByDuration(calls: CallRecord[]): ContactStat | null {
   );
 }
 
+export type HourBucket = { hour: number; count: number; duration: number };
+export type WeekdayBucket = { day: number; label: string; count: number; duration: number };
+export type TimeBlock = { block: number; label: string; count: number };
+
+/** Calls grouped by hour of day (0-23). */
+export function hourlyBuckets(calls: CallRecord[]): HourBucket[] {
+  const buckets: HourBucket[] = Array.from({ length: 24 }, (_, hour) => ({
+    hour,
+    count: 0,
+    duration: 0,
+  }));
+  calls.forEach((call) => {
+    const hour = new Date(call.timestamp).getHours();
+    buckets[hour].count += 1;
+    buckets[hour].duration += call.duration;
+  });
+  return buckets;
+}
+
+const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+/** Calls grouped by day of week (0=Sun..6=Sat). */
+export function weekdayBuckets(calls: CallRecord[]): WeekdayBucket[] {
+  const buckets: WeekdayBucket[] = Array.from({ length: 7 }, (_, day) => ({
+    day,
+    label: WEEKDAY_LABELS[day],
+    count: 0,
+    duration: 0,
+  }));
+  calls.forEach((call) => {
+    const day = new Date(call.timestamp).getDay();
+    buckets[day].count += 1;
+    buckets[day].duration += call.duration;
+  });
+  return buckets;
+}
+
+/** 7 days x 4 time blocks (0-6, 6-12, 12-18, 18-24) heatmap. */
+export type HeatmapCell = { day: number; block: number; count: number };
+export function heatmapBuckets(calls: CallRecord[]): HeatmapCell[] {
+  const cells: HeatmapCell[] = [];
+  for (let day = 0; day < 7; day += 1) {
+    for (let block = 0; block < 4; block += 1) {
+      cells.push({ day, block, count: 0 });
+    }
+  }
+  calls.forEach((call) => {
+    const d = new Date(call.timestamp);
+    const day = d.getDay();
+    const hour = d.getHours();
+    const block = Math.floor(hour / 6);
+    const cell = cells.find((c) => c.day === day && c.block === block);
+    if (cell) cell.count += 1;
+  });
+  return cells;
+}
+
 export type DurationTrends = {
   avgAll: number;
   avg7d: number;
