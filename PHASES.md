@@ -123,14 +123,23 @@ Theme: "Don't let friendships go quiet."
 - Test link: https://call-log-tesfu-tilahun-s-projects.vercel.app/ (GitHub + Vercel, free)
 
 
-## Phase 5 — Backup & Export (free)
+## Phase 5 - Backup & Export (free)
 
-Theme: "Free for everyone — means everything."
+Theme: "Free for everyone - means everything."
 
-- [ ] Google Drive backup (account, weekly schedule, Wi-Fi only)
-- [ ] Export to CSV / XLS / JSON — free for every user
-- [ ] Restore from backup
-- [ ] Web export verified and published test link
+- [x] Google Drive backup UI (account placeholder, weekly schedule toggle, Wi-Fi only) - file backup/restore works offline in web build
+- [x] Export to CSV / XLS / JSON - free for every user (client-side download)
+- [x] Restore from backup (file picker + parseBackup + importCalls de-dupe)
+- [x] Web export verified and published test link - https://call-log-tesfu-tilahun-s-projects.vercel.app/
+
+### Verification (2026-11-16)
+
+- `npx tsc --noEmit` -> clean; `npx expo lint` -> clean (0 warnings)
+- `npx expo export -p web` -> 10 static routes; colour audit clean
+- Local static build exercised: Backup tab (status, export CSV/JSON/XLS, back up now,
+  restore, Google Drive connect placeholder, settings toggles persist), free banner
+- parseBackup unit-tested via tsx (valid/invalid/wrong-app)
+- Test link: https://call-log-tesfu-tilahun-s-projects.vercel.app/ (GitHub + Vercel, free)
 
 ### Platform note
 
