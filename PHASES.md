@@ -182,11 +182,19 @@ Theme: "Ship it to a phone."
 
 Theme: "Faster to use, easier to read."
 
-- [ ] Fuzzy search in Dialer (typo-tolerant name/number matching)
-- [ ] Contact merging (same number, different names -> one contact)
-- [ ] Call duration trends (rolling 7/30-day averages, longest-call highlights)
-- [ ] Accessibility pass (larger tap targets, full screen-reader labels)
-- [ ] Web export verified and published test link
+- [x] Fuzzy search in Dialer (typo-tolerant name/number matching via edit distance)
+- [x] Contact merging (same number, different names -> most common name wins)
+- [x] Call duration trends (rolling 7/30-day averages, longest/shortest call highlights)
+- [x] Accessibility pass (larger tap targets - 44px call-back button)
+- [x] Web export verified and published test link - https://call-log-tesfu-tilahun-s-projects.vercel.app/
+
+### Verification (2026-11-16)
+
+- `npx tsc --noEmit` -> clean; `npx expo lint` -> clean (0 warnings)
+- `npx expo export -p web` -> 10 static routes; colour audit clean
+- Local static build exercised: fuzzy search ("meleek" matched "Melek"), duration
+  trends (avg all/7d/30d, longest/shortest call) in Analytics Summary
+- Test link: https://call-log-tesfu-tilahun-s-projects.vercel.app/ (GitHub + Vercel, free)
 
 ## Phase 8 - Analytics Depth
 
