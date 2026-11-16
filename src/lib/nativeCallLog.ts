@@ -14,10 +14,11 @@ import type { CallRecord } from '@/types/call';
 export async function readDeviceCallLog(): Promise<CallRecord[] | null> {
   if (Platform.OS === 'web') return null;
 
-  // Attempt to load an optional native module if one is installed.
+  // Attempt to load the local Expo native module if installed.
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const native = require('react-native-call-log');
+    const mod = require('call-log-native');
+    const native = mod?.default ?? mod;
     if (native && typeof native.load === 'function') {
       const rows = await native.load(500);
       return rows.map((row: Record<string, unknown>, index: number) => ({

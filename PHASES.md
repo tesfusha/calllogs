@@ -217,11 +217,30 @@ Theme: "See the patterns."
 
 Theme: "A real phone companion."
 
-- [ ] Native call-log auto-sync (READ_CALL_LOG module, EAS build)
-- [ ] Real Google Drive OAuth end to end (set client ID, backup/restore)
-- [ ] Android home-screen widget (recent calls + quick call-back)
-- [ ] PWA / offline (service worker for the web build)
-- [ ] Web export verified and published test link
+- [x] PWA / offline (service worker in public/service-worker.js, registered in root layout)
+- [x] Google Drive OAuth scaffold (expo-auth-session + expo-secure-store; set expo.extra.googleClientId)
+- [x] Native call-log module scaffold (modules/call-log with Kotlin/Swift stubs)
+- [x] EAS build configuration (eas.json) with dev/preview/production profiles
+- [ ] Native call-log auto-sync (finish Kotlin ContentResolver query; needs EAS build)
+- [ ] Real Google Drive OAuth end to end (create OAuth client ID in Google Cloud Console)
+- [ ] Android home-screen widget (native Kotlin widget; separate delivery)
+- [x] Web export verified and published test link - https://call-log-tesfu-tilahun-s-projects.vercel.app/
+
+### Verification (2026-11-16)
+
+- `npx tsc --noEmit` -> clean; `npx expo lint` -> clean (0 warnings)
+- `npx expo export -p web` -> 10 static routes; colour audit clean
+- service-worker.js present in dist after export (copied from public/)
+- Test link: https://call-log-tesfu-tilahun-s-projects.vercel.app/ (GitHub + Vercel, free)
+
+### Setup notes
+
+- Google Drive: create an OAuth 2.0 Web client ID in Google Cloud Console, set
+  `expo.extra.googleClientId` in `app.json`, rebuild.
+- Native call log: implement the `load` function in
+  `modules/call-log/android/.../CallLogModule.kt` using `CallLog.Calls` content
+  provider, then `eas build --profile development`.
+- PWA: service worker registered on web only; caches assets for offline use.
 
 ### Platform note
 
