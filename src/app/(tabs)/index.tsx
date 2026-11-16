@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Linking,
+  Pressable,
   SectionList,
   StyleSheet,
   Text,
@@ -12,10 +13,12 @@ import Head from 'expo-router/head';
 
 import { Button } from '@/components/Button';
 import { CallDetailModal } from '@/components/CallDetailModal';
+import { RemindersModal } from '@/components/RemindersModal';
 import { CallRow } from '@/components/CallRow';
 import { EmptyState } from '@/components/EmptyState';
 import { Screen } from '@/components/Screen';
 import { SearchBar } from '@/components/SearchBar';
+import { TablerIcon } from '@/components/TablerIcons';
 import { Colors } from '@/constants/Colors';
 import { pageMetadata, pageTitle } from '@/constants/meta';
 import { filterCalls, groupCalls } from '@/lib/calls';
@@ -32,6 +35,7 @@ export default function DialerScreen() {
 
   const [query, setQuery] = useState('');
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [remindersOpen, setRemindersOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
   const visible = useMemo(() => filterCalls(calls, query), [calls, query]);
@@ -114,14 +118,24 @@ export default function DialerScreen() {
           <Text style={styles.headerTitle}>Recent calls</Text>
           <Text style={styles.headerCount}>{hydrated ? countLabel : ' '}</Text>
         </View>
-        <Button
-          label="Import"
-          icon="download"
-          variant="subtle"
-          compact
-          onPress={handleImport}
-          accessibilityLabel="Import call history from a file"
-        />
+        <View style={styles.headerActions}>
+          <Pressable
+            onPress={() => setRemindersOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Reminders and reports"
+            hitSlop={6}
+            style={({ pressed }) => [styles.bellButton, pressed && styles.pressed]}>
+            <TablerIcon name="bell" size={18} color={Colors.accent} />
+          </Pressable>
+          <Button
+            label="Import"
+            icon="download"
+            variant="subtle"
+            compact
+            onPress={handleImport}
+            accessibilityLabel="Import call history from a file"
+          />
+        </View>
       </View>
 
       <SearchBar
@@ -186,6 +200,8 @@ export default function DialerScreen() {
         onCallBack={() => detailCall && handleCallBack(detailCall.number)}
       />
 
+      <RemindersModal open={remindersOpen} onClose={() => setRemindersOpen(false)} />
+
       {notice !== null && (
         <View style={styles.notice} accessibilityRole="alert">
           <Text style={styles.noticeText}>{notice}</Text>
@@ -203,6 +219,22 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 16,
     paddingTop: 12,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  bellButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.accentSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pressed: {
+    opacity: 0.6,
   },
   headerText: {
     gap: 2,

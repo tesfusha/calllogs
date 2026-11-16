@@ -109,11 +109,19 @@ Theme: "See where your time goes."
 
 Theme: "Don't let friendships go quiet."
 
-- [ ] Per-contact typical call interval derived from history
-- [ ] Quiet-period detection → notification "It's been a while since you called X"
-- [ ] Weekly report generated every Sunday
-- [ ] Monthly report generated at month end
-- [ ] Web export verified and published test link
+- [x] Per-contact typical call interval derived from history (median gap)
+- [x] Quiet-period detection -> notification "It's been a while since you called X" (browser Notification API on web)
+- [x] Weekly report generated every Sunday (auto + manual)
+- [x] Monthly report generated at month end (auto + manual)
+- [x] Web export verified and published test link - https://call-log-tesfu-tilahun-s-projects.vercel.app/
+
+### Verification (2026-11-16)
+- `npx tsc --noEmit` -> clean; `npx expo lint` -> clean (0 warnings)
+- `npx expo export -p web` -> 10 static routes; colour audit clean
+- Local static build exercised: Reminders modal (permission status, quiet contacts,
+  run check, weekly/monthly report generation), auto-check on load + data change
+- Test link: https://call-log-tesfu-tilahun-s-projects.vercel.app/ (GitHub + Vercel, free)
+
 
 ## Phase 5 — Backup & Export (free)
 
