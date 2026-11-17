@@ -46,38 +46,38 @@ type Palette = {
 
 const DARK: Palette = {
   // Surfaces
-  bg: '#0B0C0E',
-  surface: '#141619',
-  surfaceElevated: '#1C1F23',
-  border: '#2A2E34',
+  bg: '#041240',
+  surface: '#08246B',
+  surfaceElevated: '#0C2D85',
+  border: '#163B96',
   overlay: 'rgba(0, 0, 0, 0.65)',
 
   // Text
-  text: '#F2F4F7',
-  textSecondary: '#A3AAB5',
-  textMuted: '#6B7280',
+  text: '#FFFFFF',
+  textSecondary: '#B0C4DE',
+  textMuted: '#7A8BA8',
 
   // Brand / interactive
-  accent: '#8AB4F8',
-  accentPressed: '#6E9BE4',
-  accentSoft: '#1F2E45',
+  accent: '#FF6A00',
+  accentPressed: '#E65F00',
+  accentSoft: 'rgba(255, 106, 0, 0.15)',
 
   // Call directions
-  incoming: '#8AB4F8',
-  outgoing: '#B2EE63',
-  missed: '#FF8A80',
+  incoming: '#4FA3F7',
+  outgoing: '#FF6A00',
+  missed: '#FF4D4D',
 
   // Status
   success: '#7ED492',
-  warning: '#F5C563',
+  warning: '#FF6A00',
   danger: '#F28B82',
 
   // Contact avatars
   avatar: [
-    '#8C7BE8',
+    '#08246B',
+    '#FF6A00',
     '#4FA3F7',
     '#F2C14E',
-    '#F0876B',
     '#5BC6B6',
     '#E37BC0',
     '#9ACD5F',
@@ -87,42 +87,42 @@ const DARK: Palette = {
 
 const LIGHT: Palette = {
   // Surfaces
-  bg: '#F5F6F8',
+  bg: '#F5F7FA',
   surface: '#FFFFFF',
-  surfaceElevated: '#EEF0F4',
-  border: '#DDE1E7',
-  overlay: 'rgba(0, 0, 0, 0.35)',
+  surfaceElevated: '#EEF2F6',
+  border: '#DDE4EA',
+  overlay: 'rgba(8, 36, 107, 0.35)',
 
   // Text
-  text: '#14181D',
+  text: '#08246B',
   textSecondary: '#4B5563',
   textMuted: '#8A93A0',
 
   // Brand / interactive
-  accent: '#2563EB',
-  accentPressed: '#1D4ED8',
-  accentSoft: '#DBEAFE',
+  accent: '#FF6A00',
+  accentPressed: '#E65F00',
+  accentSoft: '#FFF0E6',
 
   // Call directions
-  incoming: '#2563EB',
-  outgoing: '#3F9142',
+  incoming: '#08246B',
+  outgoing: '#FF6A00',
   missed: '#DC2626',
 
   // Status
   success: '#15803D',
-  warning: '#B45309',
+  warning: '#FF6A00',
   danger: '#DC2626',
 
   // Contact avatars
   avatar: [
-    '#6D5BD0',
+    '#08246B',
+    '#FF6A00',
     '#2F7FDB',
     '#D49A1F',
     '#D96B3F',
     '#2F9E8F',
     '#C15BA5',
     '#6FA832',
-    '#5F7188',
   ],
 };
 
