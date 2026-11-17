@@ -13,7 +13,7 @@
     "android": {
       "package": "com.tesfuapps.calllog",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#08246B",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -34,7 +34,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0B0C0E",
+          "backgroundColor": "#08246B",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
