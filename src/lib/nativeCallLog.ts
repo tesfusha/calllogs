@@ -92,3 +92,32 @@ export async function readDeviceCallLog(): Promise<CallRecord[] | null> {
 
   return null;
 }
+
+/**
+ * Resolve contact names for a set of phone numbers via the native module.
+ * Returns a `{ number → name }` map for numbers that have a saved contact.
+ * No-op on web / when the module is unavailable.
+ */
+export async function resolveContactNames(
+  numbers: string[],
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (Platform.OS === 'web' || numbers.length === 0) return map;
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const mod = require('call-log-native');
+    const native = mod?.default ?? mod;
+    if (!native || typeof native.lookupName !== 'function') return map;
+
+    for (const number of numbers) {
+      if (!number || map.has(number)) continue;
+      const name = (await native.lookupName(number)) as string | null;
+      if (name && name.trim()) map.set(number, name.trim());
+    }
+  } catch {
+    // Native module not installed.
+  }
+
+  return map;
+}

@@ -22,6 +22,12 @@ class CallLogModule : Module() {
     AsyncFunction("load") { limit: Int ->
       readCallLog(limit)
     }
+
+    // Resolve a contact's display name for a phone number, or null if unknown.
+    // Uses the contacts provider; no call-log permission needed, just READ_CONTACTS.
+    AsyncFunction("lookupName") { phoneNumber: String ->
+      lookupContactName(phoneNumber)
+    }
   }
 
   private fun hasCallLogPermission(): Boolean {
@@ -116,5 +122,14 @@ class CallLogModule : Module() {
     } catch (_: Exception) {
       null
     }
+  }
+
+  private fun lookupContactName(phoneNumber: String): String? {
+    val context = appContext.reactContext ?: return null
+    // Contacts lookup needs READ_CONTACTS; if missing, just return null.
+    if (context.checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+      return null
+    }
+    return lookupContactName(context, phoneNumber)
   }
 }

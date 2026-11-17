@@ -6,10 +6,10 @@ import type { Metadata } from 'expo-router/server';
  * prerendered page gets its own <title>/<meta> tags.
  */
 export const APP_DESCRIPTION =
-  'A minimalist call-log companion — analytics, call-back reminders, free Google Drive backup and export. No ads, no paywall.';
+  'A minimalist call-analyzer — call-log analytics, favourites, call-back reminders, free Google Drive backup and export. No ads, no paywall.';
 
 export function pageTitle(title?: string): string {
-  return title === undefined ? 'Call Log' : `${title} · Call Log`;
+  return title === undefined ? 'Call Analyzer - ETH' : `${title} · Call Analyzer - ETH`;
 }
 
 export function pageMetadata(title?: string): Metadata {

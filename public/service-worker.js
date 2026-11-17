@@ -1,4 +1,4 @@
-const CACHE_NAME = 'call-log-v1';
+const CACHE_NAME = 'call-analyzer-v2';
 const PRECACHE = ['/', '/index.html', '/favicon.ico'];
 
 self.addEventListener('install', (event) => {

@@ -10,4 +10,5 @@ export type NativeCallLogEntry = {
 export declare class CallLogModule {
   static hasPermissions(): Promise<boolean>;
   static load(limit: number): Promise<NativeCallLogEntry[]>;
+  static lookupName(phoneNumber: string): Promise<string | null>;
 }

@@ -8,8 +8,13 @@ import {
 } from 'react';
 import type { ReactNode } from 'react';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { readCalls, writeCalls } from '@/lib/storage';
+import { readDeviceCallLog, requestCallLogPermissions } from '@/lib/nativeCallLog';
 import type { CallRecord } from '@/types/call';
+
+const AUTO_LOAD_KEY = 'callanalyzer.autoLoaded.v1';
 
 /** The only fields a user can edit by hand; everything else comes from import. */
 export type CallPatch = Partial<Pick<CallRecord, 'note' | 'tag'>>;
@@ -25,7 +30,8 @@ type CallsAction =
   | { type: 'add'; calls: CallRecord[] }
   | { type: 'patch'; id: string; patch: CallPatch }
   | { type: 'remove'; id: string }
-  | { type: 'clear' };
+  | { type: 'clear' }
+  | { type: 'syncNames'; names: Map<string, string> };
 
 export type ImportCounts = {
   added: number;
@@ -40,6 +46,8 @@ type CallsContextValue = {
   patchCall: (id: string, patch: CallPatch) => void;
   removeCall: (id: string) => void;
   clearCalls: () => void;
+  /** Bulk-update names from a `{ number → name }` map (contact sync). */
+  syncNames: (names: Map<string, string>) => void;
 };
 
 function reducer(state: CallsState, action: CallsAction): CallsState {
@@ -67,6 +75,16 @@ function reducer(state: CallsState, action: CallsAction): CallsState {
 
     case 'clear':
       return { ...state, calls: [] };
+
+    case 'syncNames':
+      return {
+        ...state,
+        calls: state.calls.map((call) => {
+          const name = action.names.get(call.number);
+          if (!name || (call.name ?? '') === name) return call;
+          return { ...call, name };
+        }),
+      };
   }
 }
 
@@ -88,6 +106,32 @@ export function CallsProvider({ children }: { children: ReactNode }) {
       alive = false;
     };
   }, []);
+
+  // Auto-load the device call log on first launch (native only): request the
+  // call-log permission, read the phone's history, and merge it in. Runs once,
+  // only when the store is empty, and is never retried (flag persisted).
+  useEffect(() => {
+    let alive = true;
+    if (!hydrated || calls.length > 0) return;
+
+    AsyncStorage.getItem(AUTO_LOAD_KEY)
+      .then(async (raw) => {
+        if (!alive || raw) return; // already attempted before
+        await AsyncStorage.setItem(AUTO_LOAD_KEY, '1').catch(() => {});
+        const permission = await requestCallLogPermissions();
+        if (!alive || permission === 'denied') return;
+        const records = await readDeviceCallLog();
+        if (!alive || !records || records.length === 0) return;
+        dispatch({ type: 'add', calls: records });
+      })
+      .catch(() => {
+        // Best-effort; never block first render.
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [hydrated, calls.length]);
 
   // Persist after hydration only — writing first would clobber stored data.
   useEffect(() => {
@@ -117,9 +161,14 @@ export function CallsProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'clear' });
   }, []);
 
+  const syncNames = useCallback((names: Map<string, string>) => {
+    if (names.size === 0) return;
+    dispatch({ type: 'syncNames', names });
+  }, []);
+
   const value = useMemo<CallsContextValue>(
-    () => ({ hydrated, calls, importCalls, patchCall, removeCall, clearCalls }),
-    [hydrated, calls, importCalls, patchCall, removeCall, clearCalls],
+    () => ({ hydrated, calls, importCalls, patchCall, removeCall, clearCalls, syncNames }),
+    [hydrated, calls, importCalls, patchCall, removeCall, clearCalls, syncNames],
   );
 
   return <CallsContext.Provider value={value}>{children}</CallsContext.Provider>;

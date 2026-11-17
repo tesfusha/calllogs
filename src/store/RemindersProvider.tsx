@@ -79,7 +79,7 @@ export function useReminders() {
     const notified = new Set(currentStored.notifiedQuiet);
     qc.forEach((contact) => {
       if (!notified.has(contact.number)) {
-        notify('Call Log — been a while', quietMessage(contact));
+        notify('Call Analyzer — been a while', quietMessage(contact));
         notified.add(contact.number);
       }
     });
@@ -94,7 +94,7 @@ export function useReminders() {
       const updated = { ...newStored, lastWeeklyReportAt: now.getTime() };
       storedRef.current = updated;
       await writeStored(updated);
-      notify('Call Log — weekly report', `Last 7 days: ${report.totalCalls} calls, ${formatDuration(report.totalDuration)}.`);
+      notify('Call Analyzer — weekly report', `Last 7 days: ${report.totalCalls} calls, ${formatDuration(report.totalDuration)}.`);
     }
 
     // Auto monthly report at month end.
@@ -104,7 +104,7 @@ export function useReminders() {
       const updated = { ...newStored, lastMonthlyReportAt: now.getTime() };
       storedRef.current = updated;
       await writeStored(updated);
-      notify('Call Log — monthly report', `This month: ${report.totalCalls} calls.`);
+      notify('Call Analyzer — monthly report', `This month: ${report.totalCalls} calls.`);
     }
   }, [calls, hydrated]);
 

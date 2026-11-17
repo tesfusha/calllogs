@@ -13,9 +13,10 @@ import { pageMetadata, pageTitle } from '@/constants/meta';
 import { downloadBackup, parseBackup } from '@/lib/backup';
 import { exportCalls } from '@/lib/export';
 import { pickTextFile } from '@/lib/pickFile';
-import { readDeviceCallLog, requestCallLogPermissions } from '@/lib/nativeCallLog';
+import { readDeviceCallLog, requestCallLogPermissions, resolveContactNames } from '@/lib/nativeCallLog';
 import { useGoogleDrive } from '@/hooks/useGoogleDrive';
 import { useCalls } from '@/store/CallsProvider';
+import { useTheme } from '@/store/ThemeProvider';
 
 const SETTINGS_KEY = 'calllog.backupSettings.v1';
 const PROFILE_KEY = 'calllog.profile.v1';
@@ -45,8 +46,9 @@ export function generateMetadata() {
 }
 
 export default function SettingsScreen() {
-  const { hydrated, calls, importCalls, removeCall } = useCalls();
+  const { hydrated, calls, importCalls, removeCall, syncNames } = useCalls();
   const drive = useGoogleDrive();
+  const { mode, toggle: toggleTheme } = useTheme();
   const [settings, setSettings] = useState<BackupSettings>(DEFAULT_SETTINGS);
   const [profile, setProfile] = useState<Profile>({ name: '' });
   const [profileDraft, setProfileDraft] = useState('');
@@ -145,6 +147,42 @@ export default function SettingsScreen() {
       setReadingNative(false);
     }
   }, [importCalls]);
+
+  const handleToggleTheme = useCallback(() => {
+    toggleTheme();
+  }, [toggleTheme]);
+
+  const handleSyncNames = useCallback(async () => {
+    setReadingNative(true);
+    try {
+      const permission = await requestCallLogPermissions();
+      if (permission === 'denied') {
+        setNotice('Contacts permission denied. Enable it in system settings.');
+        return;
+      }
+      // Collect unique numbers from current calls that have no name or stale name
+      const uniqueNumbers = new Set(
+        calls.filter((c) => !c.name || c.name.trim() === '').map((c) => c.number),
+      );
+      if (uniqueNumbers.size === 0) {
+        setNotice('All contacts already have names.');
+        return;
+      }
+      const nameMap = await resolveContactNames([...uniqueNumbers]);
+      if (nameMap.size === 0) {
+        setNotice('No contact names found for these numbers.');
+        return;
+      }
+      syncNames(nameMap);
+      setNotice(
+        `Synced ${nameMap.size} name${nameMap.size === 1 ? '' : 's'} from contacts.`,
+      );
+    } catch (err) {
+      setNotice(`Couldn't sync names: ${String(err)}`);
+    } finally {
+      setReadingNative(false);
+    }
+  }, [calls, syncNames]);
 
   const handleExport = useCallback(
     (format: 'csv' | 'json' | 'xls') => {
@@ -427,13 +465,22 @@ export default function SettingsScreen() {
             Read calls straight from the phone (Android). Asks for call-log and
             contacts permission on first use.
           </Text>
-          <Button
-            label={readingNative ? 'Reading…' : 'Read device call log'}
-            icon="phone-call"
-            variant="primary"
-            onPress={handleReadDeviceCalls}
-            disabled={readingNative}
-          />
+          <View style={styles.buttonRow}>
+            <Button
+              label={readingNative ? 'Reading…' : 'Read device call log'}
+              icon="phone-call"
+              variant="primary"
+              onPress={handleReadDeviceCalls}
+              disabled={readingNative}
+            />
+            <Button
+              label={readingNative ? 'Syncing…' : 'Sync names from contacts'}
+              icon="users"
+              variant="subtle"
+              onPress={handleSyncNames}
+              disabled={readingNative}
+            />
+          </View>
         </View>
 
         {/* Auto-export schedule */}
@@ -496,6 +543,18 @@ export default function SettingsScreen() {
         {/* Settings toggles */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Settings</Text>
+          <View style={styles.settingRow}>
+            <View style={styles.settingBody}>
+              <Text style={styles.settingLabel}>Theme</Text>
+              <Text style={styles.settingHint}>{mode === 'dark' ? 'Dark' : 'Light'}</Text>
+            </View>
+            <Switch
+              value={mode === 'light'}
+              onValueChange={handleToggleTheme}
+              trackColor={{ false: Colors.border, true: Colors.accentSoft }}
+              thumbColor={mode === 'light' ? Colors.accent : Colors.textMuted}
+            />
+          </View>
           <View style={styles.settingRow}>
             <View style={styles.settingBody}>
               <Text style={styles.settingLabel}>Weekly backup schedule</Text>

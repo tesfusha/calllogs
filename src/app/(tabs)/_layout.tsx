@@ -28,8 +28,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dialer',
-          tabBarAccessibilityLabel: 'Dialer',
+          title: 'Calls',
+          tabBarAccessibilityLabel: 'Calls',
           tabBarIcon: ({ focused }) => <TabIcon name="phone" focused={focused} />,
         }}
       />

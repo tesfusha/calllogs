@@ -4,6 +4,7 @@ import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { Button } from '@/components/Button';
 import { TablerIcon, type TablerIconName } from '@/components/TablerIcons';
 import { Colors } from '@/constants/Colors';
+import { useFavorites } from '@/store/FavoritesProvider';
 import { avatarColor, formatDateTime, formatDuration, initials } from '@/lib/format';
 import type { CallPatch } from '@/store/CallsProvider';
 import type { CallDirection, CallRecord } from '@/types/call';
@@ -76,9 +77,11 @@ function Sheet({
 }: CallDetailModalProps & { call: CallRecord }) {
   const [note, setNote] = useState(call.note ?? '');
   const [tag, setTag] = useState(call.tag ?? '');
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const meta = DIRECTION_META[call.direction];
   const title = call.name?.trim() || call.number;
+  const favorite = isFavorite(call.number);
 
   const save = () => {
     onSave({
@@ -105,6 +108,18 @@ function Sheet({
             <Text style={styles.subtitleMuted}>{formatDateTime(call.timestamp)}</Text>
           </View>
         </View>
+        <Pressable
+          onPress={() => toggleFavorite(call.number)}
+          accessibilityRole="button"
+          accessibilityLabel={favorite ? 'Remove from favourites' : 'Add to favourites'}
+          hitSlop={8}
+          style={[styles.close, favorite && styles.starActive]}>
+          <TablerIcon
+            name="star"
+            size={18}
+            color={favorite ? Colors.warning : Colors.textSecondary}
+          />
+        </Pressable>
         <Pressable
           onPress={onClose}
           accessibilityRole="button"
@@ -247,6 +262,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.surface,
+  },
+  starActive: {
+    backgroundColor: Colors.accentSoft,
   },
   facts: {
     flexDirection: 'row',
