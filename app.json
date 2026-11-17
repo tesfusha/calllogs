@@ -11,6 +11,7 @@
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.tesfuapps.calllog",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -21,7 +22,9 @@
       "permissions": [
         "android.permission.READ_CALL_LOG",
         "android.permission.READ_PHONE_STATE"
-      ]
+      ],
+      "enableProguardInReleaseBuilds": true,
+      "enableShrinkResourcesInReleaseBuilds": true
     },
     "web": {
       "output": "static",
@@ -44,7 +47,16 @@
       "reactCompiler": true
     },
     "extra": {
-      "googleClientId": ""
-    }
+      "googleClientId": "",
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "08e2610c-5b3b-4886-8d3a-a92e6a0823bf"
+      }
+    },
+    "owner": "tesfuapps"
   }
 }
