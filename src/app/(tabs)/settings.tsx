@@ -13,6 +13,7 @@ import { pageMetadata, pageTitle } from '@/constants/meta';
 import { downloadBackup, parseBackup } from '@/lib/backup';
 import { exportCalls } from '@/lib/export';
 import { pickTextFile } from '@/lib/pickFile';
+import { readDeviceCallLog, requestCallLogPermissions } from '@/lib/nativeCallLog';
 import { useGoogleDrive } from '@/hooks/useGoogleDrive';
 import { useCalls } from '@/store/CallsProvider';
 
@@ -53,6 +54,14 @@ export default function SettingsScreen() {
   const [lastAutoExportAt, setLastAutoExportAt] = useState<number | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
+  const [readingNative, setReadingNative] = useState(false);
+
+  // Auto-dismiss toast notifications after 5 seconds so they never linger.
+  useEffect(() => {
+    if (notice === null) return;
+    const timer = setTimeout(() => setNotice(null), 5000);
+    return () => clearTimeout(timer);
+  }, [notice]);
 
   useEffect(() => {
     (async () => {
@@ -106,6 +115,36 @@ export default function SettingsScreen() {
     }
     setNotice('Profile saved.');
   }, [profileDraft]);
+
+  const handleReadDeviceCalls = useCallback(async () => {
+    setReadingNative(true);
+    try {
+      const permission = await requestCallLogPermissions();
+      if (permission === 'denied') {
+        setNotice('Call-log permission denied. Enable it in system settings.');
+        return;
+      }
+      const records = await readDeviceCallLog();
+      if (records === null) {
+        setNotice('Device call log isn’t available on this build. Import a CSV/JSON instead.');
+        return;
+      }
+      if (records.length === 0) {
+        setNotice('No calls found in the device call log.');
+        return;
+      }
+      const { added, duplicates } = importCalls(records);
+      setNotice(
+        `Read ${added} call${added === 1 ? '' : 's'} from device${
+          duplicates > 0 ? ` · ${duplicates} duplicate${duplicates === 1 ? '' : 's'} skipped` : ''
+        }`,
+      );
+    } catch (err) {
+      setNotice(`Couldn’t read the call log: ${String(err)}`);
+    } finally {
+      setReadingNative(false);
+    }
+  }, [importCalls]);
 
   const handleExport = useCallback(
     (format: 'csv' | 'json' | 'xls') => {
@@ -379,6 +418,22 @@ export default function SettingsScreen() {
             <Button label="JSON" icon="device-floppy" variant="subtle" onPress={() => handleExport('json')} />
             <Button label="XLS" icon="file-spreadsheet" variant="subtle" onPress={() => handleExport('xls')} />
           </View>
+        </View>
+
+        {/* Read device call log (native) */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Device call log</Text>
+          <Text style={styles.cardHint}>
+            Read calls straight from the phone (Android). Asks for call-log and
+            contacts permission on first use.
+          </Text>
+          <Button
+            label={readingNative ? 'Reading…' : 'Read device call log'}
+            icon="phone-call"
+            variant="primary"
+            onPress={handleReadDeviceCalls}
+            disabled={readingNative}
+          />
         </View>
 
         {/* Auto-export schedule */}
